@@ -3,12 +3,14 @@ import urllib.parse
 import sys
 from bs4 import BeautifulSoup
 import re
+import os 
 
-PATH = "C:\\Users\\ejnkns\\Desktop\\"
+PATH = "C:\\Users\\ejnkns\\AppData\\Roaming\\Anki2\\User 1\\collection.media\\"
 
-input_word = urllib.parse.quote(sys.argv[1])
+raw_input_word = sys.argv[1]
+input_word = urllib.parse.quote(raw_input_word)
 
-print("Looking up \"" + input_word + "\" in jisho.org")
+print("Looking up \"" + raw_input_word + "\" in jisho.org")
 response = urllib.request.urlopen('https://jisho.org/search/' + input_word)
 html_doc = response.read()
 soup = BeautifulSoup(html_doc, 'html.parser')
@@ -16,7 +18,10 @@ soup = BeautifulSoup(html_doc, 'html.parser')
 if soup.find("div", {"id" : "no-matches"}):
     print("No matches for " + input_word)
 else:
-    audios = soup.audio.contents
+    if soup.audio.contents:
+        audios = soup.audio.contents
+    else:
+        print("No audio for match")
     result_word = soup.audio.get("id")[6:].partition(":")[0]
     print("Getting audio for: " + result_word)
 
@@ -25,5 +30,6 @@ else:
         contents = re.findall('"([^"]*)"', str_audio)
         if contents[1] == "audio/mpeg":
             audio_url = "https:" + contents[0]
-            urllib.request.urlretrieve(audio_url, PATH + result_word + ".mp3")
-            print("File saved to: " + PATH + result_word + ".mp3")
+            # might want this to be result_word sometimes?
+            urllib.request.urlretrieve(audio_url, PATH + raw_input_word + ".mp3")
+            print("File saved to: " + PATH + raw_input_word + ".mp3")
